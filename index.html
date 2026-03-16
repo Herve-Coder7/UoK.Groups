@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Discussion Groups Registration</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<h1>Join Discussion Group</h1>
+
+<input id="name" placeholder="Your Name">
+<input id="reg" placeholder="Registration Number">
+<select id="gender">
+  <option value="">Select Gender</option>
+  <option value="female">Female</option>
+  <option value="male">Male</option>
+</select>
+
+<button onclick="registerStudent()">Submit</button>
+
+<p id="msg"></p>
+
+<script type="module" src="script.js"></script>
+</body>
+</html>
