@@ -85,3 +85,8 @@ function renderGroups(groups) {
 
 // 7️⃣ Run the loader
 loadStudents()
+
+
+    console.log("Admin JS is running!");
+
+document.getElementById("groups").innerHTML = "<p>JS is working!</p>";
