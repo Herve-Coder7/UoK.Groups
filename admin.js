@@ -6,11 +6,11 @@ const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYm
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Settings
+// Group settings
 const GROUP_SIZE = 10
 const MIN_FEMALES = 3
 
-// Password check
+// Password protection
 let pwd = prompt("Enter admin password")
 if (pwd !== "UoK2026.ICT") {
   alert("Access denied")
@@ -21,7 +21,6 @@ if (pwd !== "UoK2026.ICT") {
 async function loadStudents() {
   try {
     const { data: students, error } = await supabase.from("students").select("*")
-
     if (error) throw error
 
     if (!students || students.length === 0) {
@@ -36,7 +35,7 @@ async function loadStudents() {
   }
 }
 
-// Grouping logic
+// Grouping logic (max 10 per group, at least 3 females)
 function createGroups(students) {
   let females = students.filter(s => s.gender === "female")
   let males = students.filter(s => s.gender === "male")
@@ -64,7 +63,7 @@ function createGroups(students) {
   renderGroups(groups)
 }
 
-// Render groups in HTML
+// Render groups with Remove/Move buttons
 function renderGroups(groups) {
   const container = document.getElementById("groups")
   container.innerHTML = ""
@@ -79,7 +78,25 @@ function renderGroups(groups) {
 
     group.forEach(s => {
       const p = document.createElement("p")
-      p.textContent = `${s.name} (${s.reg})`
+      p.textContent = `${s.name} (${s.reg}) `
+
+      // Remove button
+      const removeBtn = document.createElement("button")
+      removeBtn.textContent = "Remove"
+      removeBtn.style.marginLeft = "10px"
+      removeBtn.onclick = () => removeStudent(s.reg)
+
+      // Move button
+      const moveBtn = document.createElement("button")
+      moveBtn.textContent = "Move"
+      moveBtn.style.marginLeft = "5px"
+      moveBtn.onclick = () => {
+        const newGroup = prompt("Enter new group number (1-" + groups.length + ")")
+        if (newGroup) moveStudent(s.reg, parseInt(newGroup))
+      }
+
+      p.appendChild(removeBtn)
+      p.appendChild(moveBtn)
       div.appendChild(p)
     })
 
@@ -87,5 +104,30 @@ function renderGroups(groups) {
   })
 }
 
-// Run
+// Remove student from Supabase
+async function removeStudent(reg) {
+  if (!confirm("Are you sure you want to remove this student?")) return
+
+  const { error } = await supabase.from("students").delete().eq("reg", reg)
+  if (error) {
+    alert("Error removing student")
+    console.error(error)
+  } else {
+    loadStudents()
+  }
+}
+
+// Move student to a different group (requires group_number column optional)
+async function moveStudent(reg, newGroup) {
+  // Optional: store group_number column
+  const { error } = await supabase.from("students").update({ group_number: newGroup }).eq("reg", reg)
+  if (error) {
+    alert("Error moving student")
+    console.error(error)
+  } else {
+    loadStudents()
+  }
+}
+
+// Run loader
 loadStudents()
