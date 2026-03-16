@@ -1,44 +1,44 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// 1️⃣ Supabase setup — replace with your credentials
+// ✅ Supabase setup
 const supabaseUrl = 'https://xtcrnvodsqkpueuotqgg.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y3Judm9kc3FrcHVldW90cWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODIxMDIsImV4cCI6MjA4OTI1ODEwMn0.U9vUuwNCr4yTLUHzUli2D4nbKTkxuqMVSZMvvZfa0Lw'
+
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// 2️⃣ Group settings
+// Group settings
 const GROUP_SIZE = 10
 const MIN_FEMALES = 3
 
-// 3️⃣ Password protection
+// Password protection
 let pwd = prompt("Enter admin password")
 if (pwd !== "UoK2026.ICT") {
   alert("Access denied")
-  window.location.href = "index.html"  // redirect to student page safely
+  window.location.href = "index.html"  // redirect safely to student page
 }
 
-// 4️⃣ Load students from Supabase
+// Load students from Supabase
 async function loadStudents() {
-  let { data: students, error } = await supabase
-    .from("students")
-    .select("*")
+  try {
+    let { data: students, error } = await supabase
+      .from("students")
+      .select("*")
 
-  if (error) {
-    console.error(error)
-    alert("Error fetching students. Check console.")
-    return
+    if (error) throw error
+    createGroups(students)
+  } catch (err) {
+    console.error(err)
+    document.getElementById("groups").innerHTML = "<p style='color:red'>Error fetching students. Check console for details.</p>"
   }
-
-  createGroups(students)
 }
 
-// 5️⃣ Grouping logic
+// Grouping logic
 function createGroups(students) {
   let females = students.filter(s => s.gender === "female")
   let males = students.filter(s => s.gender === "male")
 
   let totalGroups = Math.ceil(students.length / GROUP_SIZE)
-  let groups = []
-  for (let i = 0; i < totalGroups; i++) groups.push([])
+  let groups = Array.from({ length: totalGroups }, () => [])
 
   // Distribute females first
   let g = 0
@@ -60,21 +60,21 @@ function createGroups(students) {
   renderGroups(groups)
 }
 
-// 6️⃣ Render groups in HTML
+// Render groups on page
 function renderGroups(groups) {
-  let container = document.getElementById("groups")
-  container.innerHTML = ""  // clear previous
+  const container = document.getElementById("groups")
+  container.innerHTML = ""
 
   groups.forEach((group, i) => {
-    let div = document.createElement("div")
+    const div = document.createElement("div")
     div.className = "group"
 
-    let title = document.createElement("h3")
+    const title = document.createElement("h3")
     title.textContent = "Group " + (i + 1)
     div.appendChild(title)
 
     group.forEach(s => {
-      let p = document.createElement("p")
+      const p = document.createElement("p")
       p.textContent = `${s.name} (${s.reg})`
       div.appendChild(p)
     })
@@ -83,10 +83,5 @@ function renderGroups(groups) {
   })
 }
 
-// 7️⃣ Run the loader
+// Run everything
 loadStudents()
-
-
-    console.log("Admin JS is running!");
-
-document.getElementById("groups").innerHTML = "<p>JS is working!</p>";
