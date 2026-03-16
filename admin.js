@@ -1,34 +1,38 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// ✅ Supabase setup
+// Supabase setup
 const supabaseUrl = 'https://xtcrnvodsqkpueuotqgg.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y3Judm9kc3FrcHVldW90cWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODIxMDIsImV4cCI6MjA4OTI1ODEwMn0.U9vUuwNCr4yTLUHzUli2D4nbKTkxuqMVSZMvvZfa0Lw'
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Group settings
+// Settings
 const GROUP_SIZE = 10
 const MIN_FEMALES = 3
 
-// Password protection
+// Password check
 let pwd = prompt("Enter admin password")
 if (pwd !== "UoK2026.ICT") {
   alert("Access denied")
-  window.location.href = "index.html"  // redirect safely to student page
+  window.location.href = "index.html"
 }
 
-// Load students from Supabase
+// Load students
 async function loadStudents() {
   try {
-    let { data: students, error } = await supabase
-      .from("students")
-      .select("*")
+    const { data: students, error } = await supabase.from("students").select("*")
 
     if (error) throw error
+
+    if (!students || students.length === 0) {
+      document.getElementById("groups").innerHTML = "<p>No students registered yet.</p>"
+      return
+    }
+
     createGroups(students)
   } catch (err) {
     console.error(err)
-    document.getElementById("groups").innerHTML = "<p style='color:red'>Error fetching students. Check console for details.</p>"
+    document.getElementById("groups").innerHTML = "<p style='color:red'>Error fetching students. Check console.</p>"
   }
 }
 
@@ -37,8 +41,8 @@ function createGroups(students) {
   let females = students.filter(s => s.gender === "female")
   let males = students.filter(s => s.gender === "male")
 
-  let totalGroups = Math.ceil(students.length / GROUP_SIZE)
-  let groups = Array.from({ length: totalGroups }, () => [])
+  const totalGroups = Math.ceil(students.length / GROUP_SIZE)
+  const groups = Array.from({ length: totalGroups }, () => [])
 
   // Distribute females first
   let g = 0
@@ -60,7 +64,7 @@ function createGroups(students) {
   renderGroups(groups)
 }
 
-// Render groups on page
+// Render groups in HTML
 function renderGroups(groups) {
   const container = document.getElementById("groups")
   container.innerHTML = ""
@@ -83,5 +87,5 @@ function renderGroups(groups) {
   })
 }
 
-// Run everything
+// Run
 loadStudents()
