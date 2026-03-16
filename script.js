@@ -1,12 +1,12 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// ✅ Supabase setup
+// Supabase setup
 const supabaseUrl = 'https://xtcrnvodsqkpueuotqgg.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y3Judm9kc3FrcHVldW90cWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODIxMDIsImV4cCI6MjA4OTI1ODEwMn0.U9vUuwNCr4yTLUHzUli2D4nbKTkxuqMVSZMvvZfa0Lw'
+const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y3Judm9kcHVldW90cWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODIxMDIsImV4cCI6MjA4OTI1ODEwMn0.U9vUuwNCr4yTLUHzUli2D4nbKTkxuqMVSZMvvZfa0Lw'
 
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Hook button click
+// Button click handler
 document.getElementById("submitBtn").addEventListener("click", registerStudent)
 
 async function registerStudent() {
@@ -33,17 +33,17 @@ async function registerStudent() {
       return
     }
 
-    // Insert new student
+    // Insert new student, group_number initially null
     const { error: insertError } = await supabase
       .from("students")
-      .insert([{ name, reg, gender }])
+      .insert([{ name, reg, gender, group_number: null }])
 
     if (insertError) throw insertError
 
     document.getElementById("msg").textContent = "Registered successfully!"
     document.getElementById("msg").style.color = "green"
 
-    // Clear fields
+    // Clear form
     document.getElementById("name").value = ""
     document.getElementById("reg").value = ""
     document.getElementById("gender").value = ""
