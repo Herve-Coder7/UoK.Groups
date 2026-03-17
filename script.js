@@ -53,3 +53,35 @@ async function registerStudent() {
     document.getElementById("msg").style.color = "red"
   }
 }
+
+async function checkGroup() {
+  const reg = document.getElementById("checkReg").value.trim()
+
+  if (!reg) {
+    alert("Enter your registration number")
+    return
+  }
+
+  const { data, error } = await supabase
+    .from("students")
+    .select("name, group_number")
+    .eq("reg", reg)
+    .single()
+
+  if (error || !data) {
+    document.getElementById("groupResult").textContent = "Student not found"
+    document.getElementById("groupResult").style.color = "red"
+    return
+  }
+
+  if (!data.group_number) {
+    document.getElementById("groupResult").textContent =
+      `${data.name}, your group has not been assigned yet.`
+    document.getElementById("groupResult").style.color = "orange"
+    return
+  }
+
+  document.getElementById("groupResult").textContent =
+    `${data.name}, you are in Group ${data.group_number}`
+  document.getElementById("groupResult").style.color = "green"
+}
