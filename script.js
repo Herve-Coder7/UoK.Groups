@@ -85,3 +85,5 @@ async function checkGroup() {
     `${data.name}, you are in Group ${data.group_number}`
   document.getElementById("groupResult").style.color = "green"
 }
+
+document.getElementById("checkBtn").addEventListener("click", checkGroup)
