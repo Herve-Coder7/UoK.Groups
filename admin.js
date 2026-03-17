@@ -1,32 +1,37 @@
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-// Supabase setup
+// ------------------ Supabase Setup ------------------
 const supabaseUrl = 'https://xtcrnvodsqkpueuotqgg.supabase.co'
 const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh0Y3Judm9kc3FrcHVldW90cWdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzM2ODIxMDIsImV4cCI6MjA4OTI1ODEwMn0.U9vUuwNCr4yTLUHzUli2D4nbKTkxuqMVSZMvvZfa0Lw'
-
 const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
-// Settings
+// ------------------ Settings ------------------
 const GROUP_SIZE = 10
+const MIN_FEMALES = 3
 
-// Password protection
+// ------------------ Password Protection ------------------
 let pwd = prompt("Enter admin password")
 if (pwd !== "UoK2026.ICT") {
   alert("Access denied")
   window.location.href = "index.html"
 }
 
-// Wait for page load
+// ------------------ On Page Load ------------------
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("generateBtn").addEventListener("click", generateGroups)
   loadStudents()
 })
 
-// ---------------- LOAD STUDENTS ----------------
+// ------------------ Load & Display Students ------------------
 async function loadStudents() {
   try {
     const { data: students, error } = await supabase.from("students").select("*")
     if (error) throw error
+
+    if (!students || students.length === 0) {
+      document.getElementById("groups").innerHTML = "<p>No students registered yet.</p>"
+      return
+    }
 
     displayGroups(students)
   } catch (err) {
@@ -36,10 +41,9 @@ async function loadStudents() {
   }
 }
 
-// ---------------- GENERATE & SAVE GROUPS ----------------
+// ------------------ Generate & Assign Groups ------------------
 async function generateGroups() {
   const { data: students, error } = await supabase.from("students").select("*")
-
   if (error) {
     console.error(error)
     return
@@ -50,7 +54,6 @@ async function generateGroups() {
     return
   }
 
-  // Separate by gender
   let females = students.filter(s => s.gender === "female")
   let males = students.filter(s => s.gender === "male")
 
@@ -60,31 +63,25 @@ async function generateGroups() {
   while (males.length > 0 || females.length > 0) {
     let group = []
 
-    // Add at least 3 females if possible
-    for (let i = 0; i < 3 && females.length > 0; i++) {
+    // Ensure at least 3 females if possible
+    for (let i = 0; i < MIN_FEMALES && females.length > 0; i++) {
       group.push(females.pop())
     }
 
-    // Fill group up to 10
+    // Fill remaining spots up to GROUP_SIZE
     while (group.length < GROUP_SIZE && (males.length > 0 || females.length > 0)) {
-      if (males.length > 0) {
-        group.push(males.pop())
-      } else {
-        group.push(females.pop())
-      }
+      if (males.length > 0) group.push(males.pop())
+      else group.push(females.pop())
     }
 
-    // SAVE group_number to Supabase
-    for (let student of group) {
-      const { error: updateError } = await supabase
-        .from("students")
-        .update({ group_number: groupNumber })
-        .eq("id", student.id)
+    // Bulk update group_number in Supabase
+    const regs = group.map(s => s.reg)
+    const { error: updateError } = await supabase
+      .from("students")
+      .update({ group_number: groupNumber })
+      .in("reg", regs)
 
-      if (updateError) {
-        console.error(updateError)
-      }
-    }
+    if (updateError) console.error(updateError)
 
     groups.push(group)
     groupNumber++
@@ -94,13 +91,12 @@ async function generateGroups() {
   loadStudents()
 }
 
-// ---------------- DISPLAY GROUPS ----------------
+// ------------------ Display Groups ------------------
 function displayGroups(students) {
   const container = document.getElementById("groups")
   container.innerHTML = ""
 
   const grouped = {}
-
   students.forEach(s => {
     const g = s.group_number || "Unassigned"
     if (!grouped[g]) grouped[g] = []
@@ -110,7 +106,6 @@ function displayGroups(students) {
   for (let group in grouped) {
     const div = document.createElement("div")
     div.className = "group"
-
     div.innerHTML = `<h3>Group ${group}</h3>`
 
     grouped[group].forEach(student => {
@@ -140,12 +135,11 @@ function displayGroups(students) {
   }
 }
 
-// ---------------- REMOVE ----------------
+// ------------------ Remove Student ------------------
 async function removeStudent(reg) {
   if (!confirm("Remove this student?")) return
 
   const { error } = await supabase.from("students").delete().eq("reg", reg)
-
   if (error) {
     alert("Error removing student")
     console.error(error)
@@ -154,7 +148,7 @@ async function removeStudent(reg) {
   }
 }
 
-// ---------------- MOVE ----------------
+// ------------------ Move Student ------------------
 async function moveStudent(reg, newGroup) {
   const { error } = await supabase
     .from("students")
